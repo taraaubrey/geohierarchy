@@ -1,0 +1,71 @@
+model_config: # SettingsSpec
+    model_type: mf6 # attr: ValueSpec
+
+# model_schema:
+#   flag: all_variables
+#   models:
+#     1: dir_model.yaml
+#     2: dir_model2.yaml
+
+input_sources: # InputFilenamesSpec
+    dem: examples/dem.tif # FilenameSpec
+    rch: examples/rch.tif # FilenameSpec
+    wels: examples/wel_points.shp # FilenameSpec
+    domain: examples/domain.shp # FilenameSpec
+    cond2: 0.8 # ValueSpec
+    drn_lines: examples/drn_lines.shp # FilenameSpec
+
+input_cache: # SettingsSpec
+    top: # InputSpec
+        source: $:dem # attr: ExistingSpec
+    top_min: # InputSpec
+        source: $:top # attr: ExistingSpec (referencing 'top' defined above)
+        fileread_kwargs: {resampling: min} # attr: ValueSpec
+    bottom: # InputSpec
+        source: $:dem # ExistingSpec
+        transform: # TransformInput
+            0: min # attr: ValueSpec
+            1: ($:dem - 30) # attr: TransfromSpec
+    drn_bottom: # InputSpec
+        transform: # attr
+            0: $py:mymodule.mod1.findvalue($:dem,5) # attr: TransfromSpec, example of using a custom function
+
+
+# special package
+spatial_discretization: # SpatialDiscretizationSpec
+    package_name: dis_a # attr: ExistingSpec
+    parameters: # attr
+        length_units: meters # Parameter: ValueSpec
+        nlay: 3 # Parameter: ValueSpec
+        # nrow: 10
+        # ncol: 10
+        resolution: 100 # Parameter: ValueSpec
+        top: $:top # Parameter: ExistingSpec (referencing 'top' from input_specs)
+        botm: -100 # Parameter: ValueSpec
+    domain: $:domain # attr: ExistingSpec (referencing 'domain' from input_filenames) ; can be a dict {0: domain1, 1: domain2} corresponding to layer number: domain
+
+# stress packages
+model_packages: # PackagesSpec
+    drn_a: # ModelPackageSpec, name of package
+        package_type: drn # attr: ValueSpec
+        parameters: # attr
+            elevation: $:top_min # Parameter: ExistingSpec (referencing 'top_min' from input_specs)
+            conductance: $:cond2 # Parameter: ExistingSpec (Note: 'cond2' is NOT defined, this will cause an error)
+        spatial_domain:  # attr
+            xyz_data: # attr
+                xy: $:drn_lines # attr: ExistingSpec (Note: 'drn_lines' is NOT defined, this will cause an error)
+                z: $:top_min # attr: ExistingSpec (referencing 'top_min' from input_specs)
+        #optional specs
+        active_layers: 0 # attr: ValueSpec
+        adjust_discretization: True # attr: ValueSpec
+        how: shift # attr: ValueSpec
+
+    wel_a: # ModelPackageSpec, name of package
+        package_type: wel # attr: ValueSpec
+        parameters:
+            flux: $:wel_points.q ## Parameter: ExistingSpec (referencing 'wel_points.shp' and field 'q' - filename and field are combined in ExistingSpec source)
+        domain:  # attr
+            xyz_data:  # attr
+                x: $:wel_points.x # attr: ExistingSpec (referencing 'wel_points.shp' and field 'x')
+                y: $:wel_points.y # attr: ExistingSpec (referencing 'wel_points.shp' and field 'y')
+                z: $:wel_points.z # attr: ExistingSpec (referencing 'wel_points.shp' and field 'z')
