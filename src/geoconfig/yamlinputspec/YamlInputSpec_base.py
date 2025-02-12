@@ -40,6 +40,15 @@ class CachedInput(YamlInputSpec):
     type: str = "cached"
     source: str = None  # Key of the existing input
 
+    def __post_init__(self):
+        # if source has a '.' then add a field attribute to store the key
+        if "." in self.source:
+            self.field_key = self.source.split(".")[1]
+            self.source = self.source.split(".")[0]
+        else:
+            self.field_key = None
+
+
 
 @dataclass
 class PythonModuleInput(YamlInputSpec):
