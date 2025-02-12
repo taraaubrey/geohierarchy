@@ -1,4 +1,3 @@
-import yaml
 import os  # Import for file existence checks
 from dataclasses import dataclass, field
 from typing import Any, Optional, Dict, Union, List
@@ -58,11 +57,3 @@ class MultiInput(YamlInputSpec):
 
     type: str = "multi"
     values: List[YamlInputSpec] = field(default_factory=list)
-
-
-@dataclass
-class DictInput(YamlInputSpec):
-    """Represents a dictionary of inputs."""
-
-    type: str = "dict"
-    values: Dict[str, YamlInputSpec] = field(default_factory=dict)

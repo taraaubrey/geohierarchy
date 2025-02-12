@@ -1,4 +1,4 @@
-import yaml
+from yaml import load, BaseLoader
 from os.path import isfile
 from typing import Any, Dict
 from .YamlInputSpec_base import (
@@ -8,7 +8,6 @@ from .YamlInputSpec_base import (
     CachedInput,
     PythonModuleInput,
     MultiInput,
-    DictInput,
 )
 
 
@@ -16,7 +15,7 @@ from .YamlInputSpec_base import (
 def parse_yaml_file(yaml_filepath: str) -> dict:
     """1. Opens the yaml file and loads it into a python dictionary."""
     with open(yaml_filepath, "r") as file:
-        yaml_config = yaml.safe_load(file)
+        yaml_config = load(file, Loader=BaseLoader)
     return yaml_config
 
 
@@ -54,8 +53,6 @@ def determine_spec_type(key: str, value: Any) -> str:
         # create recursive for each item in the list
         spec_list, value_list = determine_list_spec_type(key, value)
         return spec_list, {"type": "multi", "values": value_list}
-    elif isinstance(value, dict):
-        return "dict", value
     elif isinstance(value, (float, int, str, bool)):
         return "value", value
     else:
@@ -124,10 +121,6 @@ def assign_spec_type(raw_yaml_key, value, spec_type: str) -> str:
             return MultiInput(
                 type="multi", values=value_list, raw_yaml_key=raw_yaml_key
             )
-        elif value["type"] == "dict":
-            return DictInput(
-                type="dict", values=value, raw_yaml_key=raw_yaml_key
-            )
         elif value["type"] == "python_module":
             args_list = assign_list_spec_type(raw_yaml_key, value["values"], spec_type)
             return PythonModuleInput(
@@ -144,7 +137,6 @@ def assign_spec_type(raw_yaml_key, value, spec_type: str) -> str:
 def classify_yaml_specs(
     yaml_config: dict,
     parent_key_prefix: str = "",
-    input_sources="input_sources",
 ) -> Dict[str, YamlInputSpec]:
     """
     2. Classifies each key-value pair in the yaml config into YamlInputSpec subclasses, handling nested structures recursively.

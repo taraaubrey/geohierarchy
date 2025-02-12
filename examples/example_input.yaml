@@ -22,14 +22,13 @@ input_cache: # SettingsSpec
         source: $:top # attr: ExistingSpec (referencing 'top' defined above)
         fileread_kwargs: {resampling: min} # attr: ValueSpec
     bottom: # InputSpec
-        source: $:dem # ExistingSpec
+        source: $:dem # attr: ExistingSpec
+        fileread_kwargs: {resampling: min} # attr: ValueSpec
         transform: # TransformInput
-            0: min # attr: ValueSpec
-            1: ($:dem - 30) # attr: TransfromSpec
+            0: ($:dem - 30) # attr: TransfromSpec
     drn_bottom: # InputSpec
         transform: # attr
-            0: $py:mymodule.mod1.findvalue($:dem,5) # attr: TransfromSpec, example of using a custom function
-
+            0: $py:mymodule.mod1.findvalue($:dem,$:wels) # attr: TransfromSpec, example of using a custom function
 
 # special package
 spatial_discretization: # SpatialDiscretizationSpec
