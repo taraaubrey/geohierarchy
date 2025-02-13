@@ -1,12 +1,6 @@
 model_config: # SettingsSpec
     model_type: mf6 # attr: ValueSpec
 
-input_hierarchy:
-  flag: all_variables
-  models:
-    0: examples/model0.yaml
-    1: examples/model1.yaml
-
 input_sources: # InputFilenamesSpec
     dem: examples/dem.tif # FilenameSpec
     rch: examples/rch.tif # FilenameSpec

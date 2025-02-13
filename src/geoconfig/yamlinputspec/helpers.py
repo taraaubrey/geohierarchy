@@ -1,5 +1,5 @@
 from yaml import load, BaseLoader
-from os.path import isfile
+from os.path import isfile, basename
 from typing import Any, Dict
 from .YamlInputSpec_base import (
     YamlInputSpec,
@@ -163,6 +163,47 @@ def classify_yaml_specs(
     return yaml_specs
 
 
+def add_hierarchy(yaml_specs: Dict[str, YamlInputSpec]) -> Dict[str, YamlInputSpec]:
+    """
+    2.5. Adds hierarchy to the YamlInputSpecs based on the raw_yaml_key.
+    """
+    model_yamls = [(key.split('.')[-1], value) for key, value in yaml_specs.items() if "model_schema.models" in key]
+
+    model_specs = {}
+    for key, model_yamlinput in model_yamls:
+        # open file
+        if isinstance(model_yamlinput, FilenameInput):
+            model_yaml_filepath = model_yamlinput.filename
+        else:
+            raise ValueError(f"Model yaml file path not found for {key}")
+
+        model_yaml_filename = basename(model_yaml_filepath).split(".")[0]
+        model_yaml_config = parse_yaml_file(model_yaml_filepath)  # opens raw yaml -> dict
+        model_yaml_specs = classify_yaml_specs(model_yaml_config)
+        model_specs[key] = {"basename": model_yaml_filename, "yaml_specs": model_yaml_specs}
+    
+    # add yaml_basename as prefix to the raw_yaml_key
+    all_yaml_specs = {}
+    for key, value in model_specs.items():
+        model_yaml_basename = value["basename"]
+        model_yaml_specs = value["yaml_specs"]
+
+        new_yaml_specs = {}
+        for yaml_key, yaml_value in model_yaml_specs.items():
+            new_key = f"{int(key)+1}.{model_yaml_basename}.{yaml_key}"
+            new_yaml_specs[new_key] = yaml_value
+        all_yaml_specs.update(new_yaml_specs)
+    
+    # also do this for the main yaml_specs
+    new_yaml_specs = {}
+    for key, value in yaml_specs.items():
+        new_key = f"0.main.{key}"
+        new_yaml_specs[new_key] = value
+    all_yaml_specs.update(new_yaml_specs)
+
+    return all_yaml_specs
+    
+
 def check_cached_specs(yaml_specs: Dict[str, YamlInputSpec]) -> None:
     """
     3. Checks that CachedSpec 'source' is defined as a ValueSpec or FilenameSpec.
@@ -264,6 +305,12 @@ def parse_yaml_to_specs(yaml_filepath: str) -> Dict[str, YamlInputSpec]:
     """
     yaml_config = parse_yaml_file(yaml_filepath)  # opens raw yaml -> dict
     yaml_specs = classify_yaml_specs(yaml_config)
+
+    # parse other models
+    hierarchy_specs = add_hierarchy(yaml_specs)
+
+    # Create input_cache?
+
     check_cached_specs(yaml_specs)
     resolved_specs = resolve_cached_specs(yaml_specs)
     return resolved_specs
