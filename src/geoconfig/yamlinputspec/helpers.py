@@ -307,12 +307,6 @@ def parse_yaml_to_specs(yaml_filepath: str) -> Dict[str, YamlInputSpec]:
     from geoconfig.yamlinputspec.yaml_spec_class import YamlSpec
     main_spec = YamlSpec.from_filename(yaml_filepath)
 
-    yaml_config = parse_yaml_file(yaml_filepath)  # opens raw yaml -> dict
-    yaml_specs = classify_yaml_specs(yaml_config)
-
-    # parse other models
-    hierarchy_specs = add_hierarchy(yaml_specs)
-
     # Create input_cache?
 
     check_cached_specs(yaml_specs)
