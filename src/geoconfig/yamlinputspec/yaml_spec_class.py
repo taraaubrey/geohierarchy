@@ -7,15 +7,16 @@ from yaml import load, BaseLoader
 from geoconfig.yamlinputspec.spectypeclassifier import get_value_spec_type
 
 class YamlSpec:
-    def __init__(self, filepath):
+    def __init__(self, filespec):
+        
+        self.hiera_model_code = 'input_hierarchy.models'
 
-        # check if filepath exists
-        if not isfile(filepath):
-            raise ValueError(f"Filepath does not exist: {filepath}")
+        # self.filepath = filepath
+        self.filespec = filespec
 
-        self.filepath = filepath
-        self.basename = self._get_basename()
-        self._specs = self._map_config()
+        input_dict = self.filespec.open()
+
+        self._specs = self._classify_yaml_specs(input_dict)
         self._upstream_specs = self._set_upstream_specs()
 
     def __repr__(self):
@@ -30,33 +31,24 @@ class YamlSpec:
         return self._upstream_specs
 
     @classmethod
-    def from_filename(cls, filename):
-        return cls(filename)
+    def from_filepath(cls, filepath):
+        filespec = get_value_spec_type(filepath)
+        return cls.from_spec(filespec)
 
-    def _parse_yaml_file(self) -> dict:
-        """Opens yaml with all specs as strings."""
-        with open(self.filepath, "r") as file:
-            yaml_config = load(file, Loader=BaseLoader)
-        return yaml_config
-
-    def _get_basename(self):
-        return basename(self.filepath).split(".")[0]
-
-    def _map_config(self):
-        yaml_config = self._parse_yaml_file()
-        return self._classify_yaml_specs(yaml_config)
+    @classmethod
+    def from_spec(cls, filespec):
+        return cls(filespec)
     
     def _set_upstream_specs(self):
-        other_yamls = [(key.split('.')[-1], value) for key, value in self.specs.items() if "input_hierarchy.models" in key]
+        other_yamls = [(key.split('.')[-1], value) for key, value in self.specs.items() if self.hiera_model_code in key]
 
         model_specs = []
+
         for key, model_yamlinput in other_yamls:
-            # get file
-            model_yaml_filepath = model_yamlinput.filename
-            
+
             # new spec
             hlevel = int(key.split('.')[-1])
-            hspec = HierarchicalYamlSpec.from_filename(model_yaml_filepath)
+            hspec = HierarchicalYamlSpec.from_spec(model_yamlinput)
             hspec.add_hierarchy_level(hlevel)
             model_specs.append(hspec)
             
@@ -72,7 +64,7 @@ class YamlSpec:
                 yaml_update = self._classify_yaml_specs(value, parent_key_prefix=raw_yaml_key)
                 yaml_specs.update(yaml_update)
             else:
-                yaml_specs[raw_yaml_key] = get_value_spec_type(raw_yaml_key, key, value)
+                yaml_specs[raw_yaml_key] = get_value_spec_type(value)
         return yaml_specs
 
 
@@ -91,4 +83,5 @@ class HierarchicalYamlSpec(YamlSpec):
             raise ValueError(f"Invalid hierarchy level: {hierarchy_level}. Input is a {type(hierarchy_level)} Must be an integer.")
         
         self._hlevel = hierarchy_level
+    
 	

@@ -30,7 +30,7 @@ input_cache: # SettingsSpec
         transform: # attr
             0: $py:mymodule.mod1.findvalue($:dem,$:wels) # attr: TransfromSpec, example of using a custom function
 
-# special package
+# model specifis schema
 spatial_discretization: # SpatialDiscretizationSpec
     package_name: dis_a # attr: ExistingSpec
     parameters: # attr
