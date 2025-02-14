@@ -1,12 +1,6 @@
-from typing import Any, List, Optional, Dict
-from dataclasses import dataclass
+from ..user_input.user_input_classifier import get_value_spec_type
 
-from os.path import basename, isfile
-from yaml import load, BaseLoader
-
-from geoconfig.yamlinputspec.spectypeclassifier import get_value_spec_type
-
-class YamlSpec:
+class InputConfig:
     def __init__(self, filespec):
         
         self.hiera_model_code = 'input_hierarchy.models'
@@ -20,7 +14,7 @@ class YamlSpec:
         self._upstream_specs = self._set_upstream_specs()
 
     def __repr__(self):
-        return f"YamlSpec({self.basename})"
+        return f"InputSpec({self.filespec.filepath})"
 
     @property
     def specs(self):
@@ -48,7 +42,7 @@ class YamlSpec:
 
             # new spec
             hlevel = int(key.split('.')[-1])
-            hspec = HierarchicalYamlSpec.from_spec(model_yamlinput)
+            hspec = HierarchicalInputConfig.from_spec(model_yamlinput)
             hspec.add_hierarchy_level(hlevel)
             model_specs.append(hspec)
             
@@ -68,7 +62,7 @@ class YamlSpec:
         return yaml_specs
 
 
-class HierarchicalYamlSpec(YamlSpec):
+class HierarchicalInputConfig(InputConfig):
     def __init__(self, filepath):
         super().__init__(filepath)
         self._hlevel = None

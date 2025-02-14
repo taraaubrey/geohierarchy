@@ -1,6 +1,8 @@
-from geoconfig.yamlinputspec.helpers import parse_yaml_to_specs
+from geoconfig.main_config.input_config import InputConfig
 
 yaml_filepath = "examples/example_input.yaml"
-parsed_specs = parse_yaml_to_specs(yaml_filepath)
+# will be encapsulated in an api eventually
+
+main_spec = InputConfig.from_filepath(yaml_filepath)
 
 print("here")

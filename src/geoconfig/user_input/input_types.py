@@ -1,12 +1,12 @@
 import os  # Import for file existence checks
 from dataclasses import dataclass, field
-from typing import Any, Optional, Dict, Union, List
+from typing import Any, List
 
 # import abstract class ABC
 from abc import ABC, abstractmethod
 
 # import FileTypeFactory
-from geoconfig.input_types.filepath.filetype_factory import FileTypeFactory, filetype_factory
+from .filepath.filetype_factory import filetype_factory
 
 # --- YamlInputSpec Classes ---
 @dataclass

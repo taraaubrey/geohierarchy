@@ -1,12 +1,9 @@
-from typing import Dict, Any
-from os.path import isfile
+from .user_input_factory import user_input_factory
 
-from geoconfig.input_types.input_factory import input_factory
-
-class SpecTypeClassifier:
+class UserInputClassifier:
     def __init__(self):
         # get registered spec types
-        self.input_factory = input_factory
+        self.input_factory = user_input_factory
     
     def get_spec_type(self, value):
         return self._get_input_type_from_value(value)
@@ -17,5 +14,5 @@ class SpecTypeClassifier:
         
 
 def get_value_spec_type(value):
-    classifier = SpecTypeClassifier()
+    classifier = UserInputClassifier()
     return classifier.get_spec_type(value)

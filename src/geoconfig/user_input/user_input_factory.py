@@ -1,5 +1,5 @@
 from typing import Dict, Union
-from .definitions import (
+from .input_types import (
     YamlInputSpec,
     RecursiveType,
     ValueInput,
@@ -10,7 +10,7 @@ from .definitions import (
     MathInput,
 )
 
-class InputTypeFactory:
+class UserInputFactory:
     def __init__(self):
         self._registery: Dict[str, YamlInputSpec] = {}
         self._default: YamlInputSpec = None
@@ -47,14 +47,14 @@ class InputTypeFactory:
             return input_spec
 
 
-input_factory = InputTypeFactory()  
+user_input_factory = UserInputFactory()  
 
 # set default
-input_factory.register_default("value", ValueInput)
+user_input_factory.register_default("value", ValueInput)
 
 # Register valid types of inputs in the yaml file
-input_factory.register("filename", FilepathInput)
-input_factory.register("cached", CachedInput)
-input_factory.register("python_module", PythonModuleInput)
-input_factory.register("multi", MultiInput)
-input_factory.register("math", MathInput)
+user_input_factory.register("filename", FilepathInput)
+user_input_factory.register("cached", CachedInput)
+user_input_factory.register("python_module", PythonModuleInput)
+user_input_factory.register("multi", MultiInput)
+user_input_factory.register("math", MathInput)
