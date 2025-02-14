@@ -75,6 +75,7 @@ class YamlSpec:
                 yaml_specs[raw_yaml_key] = get_value_spec_type(raw_yaml_key, key, value)
         return yaml_specs
 
+
 class HierarchicalYamlSpec(YamlSpec):
     def __init__(self, filepath):
         super().__init__(filepath)

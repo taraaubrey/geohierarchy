@@ -2,10 +2,12 @@ import os  # Import for file existence checks
 from dataclasses import dataclass, field
 from typing import Any, Optional, Dict, Union, List
 
+# import abstract class ABC
+from abc import ABC, abstractmethod
 
 # --- YamlInputSpec Classes ---
 @dataclass
-class YamlInputSpec:
+class YamlInputSpec(ABC):
     """Base class for YAML input specifications."""
 
     type: str  # e.g., "value", "filename", "existing", "transformation"
@@ -14,6 +16,10 @@ class YamlInputSpec:
         None  # Keep track of the original YAML key for error messages
     )
 
+    @abstractmethod
+    def is_type(self, value: Any) -> bool:
+        """Check if the value is an instance of this class."""
+        pass
 
 @dataclass
 class ValueInput(YamlInputSpec):
@@ -21,6 +27,9 @@ class ValueInput(YamlInputSpec):
 
     type: str = "value"
     value: Any = None
+
+    def is_type(self, value: Any) -> bool:
+        return isinstance(value, (str, bool, int, float))
 
 
 @dataclass
@@ -30,6 +39,9 @@ class FilenameInput(YamlInputSpec):
     type: str = "filename"
     filename: str = None
     file_type: Optional[str] = None
+
+    def is_type(self, value: Any) -> bool:
+        return os.path.isfile(value)
 
 
 # complex ----------------------------------------
@@ -47,6 +59,9 @@ class CachedInput(YamlInputSpec):
             self.source = self.source.split(".")[0]
         else:
             self.field_key = None
+    
+    def is_type(self, value: Any) -> bool:
+        return value.split(":")[0] == "$"
 
 
 
@@ -59,6 +74,15 @@ class PythonModuleInput(YamlInputSpec):
     function: str = None
     args: List[YamlInputSpec] = field(default_factory=list)
 
+    @staticmethod
+    def is_type(value: Any) -> bool:
+        if value.split(":")[0] == "$py":
+            return True
+        elif any(
+            [char in value for char in ["+", "-", "*", "/"]]) and value.startswith("("):
+            return True
+        return False
+
 
 @dataclass
 class MultiInput(YamlInputSpec):
@@ -66,3 +90,6 @@ class MultiInput(YamlInputSpec):
 
     type: str = "multi"
     values: List[YamlInputSpec] = field(default_factory=list)
+
+    def is_type(self, value: Any) -> bool:
+        return isinstance(value, list)

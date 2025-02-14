@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from os.path import isfile
 
-from geoconfig.yamlinputspec.YamlInputSpec_base import (
+from geoconfig.yamlinputspec.input_types.definitions import (
     ValueInput,
     FilenameInput,
     CachedInput,
@@ -11,7 +11,7 @@ from geoconfig.yamlinputspec.YamlInputSpec_base import (
 
 class SpecTypeClassifier:
     def __init__(self):
-        # define data structures here
+        # get registered spec types
         self.spec_types = {
             "filename": "filename",
             "cached": "cached",
@@ -19,15 +19,13 @@ class SpecTypeClassifier:
             "multi": "multi",
             "value": "value",
         }
-    @staticmethod
+    
     def get_spec_type(self, raw_yaml_key, key, value):
         spec_type, parsed_value = self._determine_spec_type(key, value)
         return self._assign_spec_type(raw_yaml_key, parsed_value, spec_type)
    
     def _determine_spec_type(self, key, value) -> str:
         """Type determination of input specs based on key and value."""
-        key = self.key
-        value = self.value
         # Value type can be float, int, str, bool
         if isinstance(value, str) and isfile(
             value
@@ -41,13 +39,13 @@ class SpecTypeClassifier:
                 if char in value:
                     values = value.replace(" ", "").replace("(", "").replace(")", "").split(char)
                     break
-            spec_list, value_list = _determine_list_spec_type(key, values)
-            return spec_list, _determine_python_module(char, value_list)
+            spec_list, value_list = self._determine_list_spec_type(key, values)
+            return spec_list, self._determine_python_module(char, value_list)
         elif isinstance(value, str) and value.split(":")[0] == "$":
             return "cached", value
         elif isinstance(value, str) and value.split(":")[0] == "$py":
             values = value.split("(")[1].split(")")[0].replace(" ", "").split(",")
-            spec_list, value_list = _determine_list_spec_type(key, values)
+            spec_list, value_list = self._determine_list_spec_type(key, values)
             module = value.split(":")[1].split("(")[0].split(".")[:-1]
             function = value.split(":")[1].split("(")[0].split(".")[-1]
             return spec_list, {
@@ -58,7 +56,7 @@ class SpecTypeClassifier:
             }
         elif isinstance(value, list):
             # create recursive for each item in the list
-            spec_list, value_list = _determine_list_spec_type(key, value)
+            spec_list, value_list = self._determine_list_spec_type(key, value)
             return spec_list, {"type": "multi", "values": value_list}
         elif isinstance(value, (float, int, str, bool)):
             return "value", value
@@ -138,5 +136,6 @@ class SpecTypeClassifier:
         else:
             raise ValueError(f"Unknown spec type for key: {raw_yaml_key}, value: {value}")
 
-def get_value_spec_type(key, value):
-    return SpecTypeClassifier.get_spec_type(key, value)
+def get_value_spec_type(raw_yaml_key, key, value):
+    classifier = SpecTypeClassifier()
+    return classifier.get_spec_type(raw_yaml_key, key, value)
