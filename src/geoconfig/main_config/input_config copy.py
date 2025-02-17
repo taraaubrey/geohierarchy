@@ -1,29 +1,15 @@
+from abc import ABC
 from ..user_input.user_input_classifier import get_value_spec_type
 
-class InputConfig:
+
+class InputConfig(ABC):
     def __init__(self, filespec):
-        
-        self.hiera_model_code = 'input_hierarchy.models'
-
-        # self.filepath = filepath
         self.filespec = filespec
-
-        input_dict = self.filespec.open()
-
-        self._specs = self._classify_yaml_specs(input_dict)
-        self._upstream_specs = self._set_upstream_specs()
+        self.input_dict = self.filespec.open()
 
     def __repr__(self):
-        return f"InputSpec({self.filespec.filepath})"
-
-    @property
-    def specs(self):
-        return self._specs
+        return f"{__class__.__name__}({self.filespec.filepath})"
     
-    @property
-    def upstream_specs(self):
-        return self._upstream_specs
-
     @classmethod
     def from_filepath(cls, filepath):
         filespec = get_value_spec_type(filepath)
@@ -33,6 +19,38 @@ class InputConfig:
     def from_spec(cls, filespec):
         return cls(filespec)
     
+    
+
+class SchemaConfig(InputConfig):
+    def __init__(self, filespec):
+        super().__init__(filespec)
+        
+        self._schema = self.input_dict
+    
+    @property
+    def schema(self):
+        return self._schema
+
+
+class UserConfig(InputConfig):
+    def __init__(self, filespec):
+        super().__init__(filespec)
+        
+        # TODO: make this a parameter
+        self.hiera_model_code = 'input_hierarchy.models'
+
+        self._specs = self._classify_yaml_specs(self.input_dict)
+        self._upstream_specs = self._set_upstream_specs()
+
+    @property
+    def specs(self):
+        return self._specs
+    
+    @property
+    def upstream_specs(self):
+        return self._upstream_specs
+
+   
     def _set_upstream_specs(self):
         other_yamls = [(key.split('.')[-1], value) for key, value in self.specs.items() if self.hiera_model_code in key]
 
@@ -62,7 +80,7 @@ class InputConfig:
         return yaml_specs
 
 
-class HierarchicalInputConfig(InputConfig):
+class HierarchicalInputConfig(UserConfig):
     def __init__(self, filepath):
         super().__init__(filepath)
         self._hlevel = None

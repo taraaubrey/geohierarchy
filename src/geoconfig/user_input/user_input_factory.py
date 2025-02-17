@@ -28,7 +28,9 @@ class UserInputFactory:
         return self._registery[name]
 
     def list_all(self) -> Dict[str, YamlInputSpec]:
-        return self._registery
+        all_types = self._registery.copy()
+        all_types.update({self._default.type: self._default})
+        return all_types
     
     def create(self, value):
         for input_type in self._registery.values():
@@ -53,7 +55,7 @@ user_input_factory = UserInputFactory()
 user_input_factory.register_default("value", ValueInput)
 
 # Register valid types of inputs in the yaml file
-user_input_factory.register("filename", FilepathInput)
+user_input_factory.register("filepath", FilepathInput)
 user_input_factory.register("cached", CachedInput)
 user_input_factory.register("python_module", PythonModuleInput)
 user_input_factory.register("multi", MultiInput)

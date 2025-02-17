@@ -11,8 +11,3 @@ class UserInputClassifier:
     def _get_input_type_from_value(self, value):
         parsed_input = self.input_factory.create(value)
         return self.input_factory.resolve_if_recursive(parsed_input)
-        
-
-def get_value_spec_type(value):
-    classifier = UserInputClassifier()
-    return classifier.get_spec_type(value)

@@ -1,0 +1,46 @@
+model_config:
+  type: dict
+  required: true
+  schema:
+    model_type:
+      type: value
+      required: true
+
+input_hierarchy:
+  type: dict
+  required: false
+  schema:
+    flag:
+      type: value
+      required: false
+    models:
+      type: dict
+      required: true
+
+input_sources:
+  type: dict
+  required: true
+
+input_cache:
+  type: dict
+  required: false
+  schema:
+    user_key:
+      type: dict
+      required: false
+      user_key: true
+      schema:
+        source:
+          type: str
+          required: true
+          value_type:
+            - cache
+            - filepath
+            - value
+            - multi
+        fileread_kwargs:
+          type: dict
+          required: false
+        transform:
+          type: dict
+          required: false

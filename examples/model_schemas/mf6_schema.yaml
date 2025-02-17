@@ -1,0 +1,53 @@
+spatial_discretization:
+  type: dict
+  required: true
+  schema:
+    package_name:
+      type: value
+      required: true
+    parameters:
+      type: dict
+      required: true
+      schema:
+        length_units:
+          required: true
+        nlay:
+          required: true
+        resolution:
+          required: true
+        top:
+          required: true
+          value_type:
+            - filepath
+            - cached
+        botm:
+          type: value
+          required: true
+    domain:
+      type: value
+      required: true
+
+
+model_packages:
+  type: dict
+  required: true
+  schema:
+    drn_a:
+      type: dict
+      required: false
+      schema:
+        package_type:
+          type: value
+          required: false
+        parameters:
+          type: dict
+          required: false
+          schema:
+            param_value:
+              type: value
+              required: true
+              value_type:
+                - float
+                - int
+                - cache
+                - filepath
