@@ -1,5 +1,7 @@
 from abc import ABC
 from .InputConfig import InputConfig
+from ..user_input.user_input_factory import UserInputFactory
+from ..user_input.input_types import FilepathInput
 
 type_map = {
         'int': int,
@@ -13,22 +15,25 @@ type_map = {
 
 class SchemaConfig(InputConfig):
 
-    def __init__(self, filepath=None, filespec=None, type_map=type_map):
-        super().__init__(filepath)
+    def __init__(
+            self,
+            filepath: str,
+            filespec: FilepathInput,
+            input_factory: UserInputFactory):
+        super().__init__(filepath=filepath, filespec=filespec, input_factory=input_factory)
        
         self._schema = self.input_dict
         self._type_map = type_map
-        self._type_map.update(self._UserInputClassifier.input_factory.list_all())
     
     @property
     def schema(self):
         return self._schema
     
-    def validate(self, config: dict):
+    def validate(self, config_to_validate: InputConfig):
         # Validate the config against the schema
-        return self._validate_schema_level(config, self.schema)
+        return self._validate_schema_level(config_to_validate, self.schema)
     
-    def _validate_schema_level(self, config: dict, schema_level, path_prefix=None):
+    def _validate_schema_level(self, config_to_validate: InputConfig, schema_level, path_prefix=None):
         # if not isinstance(config, dict):
         #     raise ValueError(f"Expected a dictionary, got {config}")
         

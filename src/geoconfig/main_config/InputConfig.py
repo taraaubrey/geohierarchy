@@ -1,28 +1,42 @@
-from abc import ABC
-from ..user_input.user_input_classifier import UserInputClassifier
+from abc import ABC, abstractmethod
+from os.path import isfile
+
+from ..settings.config import (
+    upstream_model_keys,
+    model_type_key,
+    )
+
+from ..user_input.user_input_factory import UserInputFactory, user_input_factory
+from ..user_input.input_types import FilepathInput
 
 
 class InputConfig(ABC):
-    def __init__(self, filepath=None, filespec=None):
-        self._UserInputClassifier = UserInputClassifier()
-        self._types_of_input = self._UserInputClassifier.input_factory.list_all()
-
-        self.get_spec_type = self._UserInputClassifier.get_spec_type
+    def __init__(self, filepath: str, filespec: FilepathInput):
+        self._user_input_factory: UserInputFactory = user_input_factory
+        self._upstream_model_keys = upstream_model_keys
+        self._model_type_key = model_type_key
 
         if filespec:
             self.filespec = filespec
+            self.filepath = self.filespec.filepath
         elif filepath:
-            self.filespec = self.get_spec_type(filepath)
+            self.filespec = self._user_input_factory.classify_user_input(filepath)
+            if not isfile(self.filespec.value):
+                raise FileNotFoundError(f"File not found: {self.filespec.value}")
+            self.filepath = filepath
+        else:
+            raise ValueError("Must provide either a filepath or a filespec.")
 
         self.input_dict = self.filespec.open()
 
     def __repr__(self):
         return f"{__class__.__name__}({self.filepath})"
     
-    @classmethod
-    def from_filepath(cls, filepath):
-        return cls(filepath=filepath)
+    @abstractmethod
+    def from_filepath(cls, filepath:str):
+        return cls(filepath=filepath, filespec=None)
     
-    @classmethod
-    def from_spec(cls, filespec):
-        return cls(filespec=filespec)
+    @abstractmethod
+    def from_filespec(cls, filespec:FilepathInput):
+        return cls(filespec=filespec, filepath=None)
+    
