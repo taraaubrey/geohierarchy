@@ -1,0 +1,73 @@
+@startuml try
+!define Class metaclass __stereotype__
+!define Interface interface __stereotype__
+!define abstract abstract __stereotype__
+
+
+abstract Class YamlInputSpec {
+    {abstract} +type: str
+    +value: Any
+    {abstract} +is_type(value: Any) : bool
+    {abstract} +create(value)
+}
+
+Class ValueInput extends YamlInputSpec {
+    +type: str = "value"
+    +is_type(value: Any) : bool {static}
+    +create(cls, value) {classmethod}
+}
+
+Class FilepathInput extends YamlInputSpec {
+    +type: str = "filepath"
+    +value: str
+    +filepath: str
+    +file_ext: str
+    +__post_init__()
+    +is_type(value: Any) : bool {static}
+    +create(cls, value) {classmethod}
+    +open()
+}
+
+Class CachedInput extends YamlInputSpec {
+    +type: str = "cached"
+    +source: str
+    +field_key: str
+    +__post_init__()
+    +is_type(value: Any) : bool {static}
+    +create(self, value) {classmethod}
+}
+
+abstract Class RecursiveType {
+    +arg_values: List[Any]
+    +args: List[YamlInputSpec]
+    +update_args(arg)
+}
+
+Class PythonModuleInput extends YamlInputSpec
+Class PythonModuleInput extends RecursiveType {
+    +type: str = "python_module"
+    +module: str
+    +function: str
+    +is_type(value: Any) : bool {static}
+    +create(cls, value) {classmethod}
+}
+
+Class MathInput extends YamlInputSpec
+Class MathInput extends RecursiveType {
+    +type: str = "math"
+    +operation: str
+    +is_type(value: Any) : bool {static}
+    +create(cls, value) {classmethod}
+    +_determine_python_module(values)
+}
+
+Class MultiInput extends YamlInputSpec
+Class MultiInput extends RecursiveType {
+    +type: str = "multi"
+    +is_type(value: Any) : bool {static}
+    +create(cls, value) {classmethod}
+}
+
+RecursiveType --o YamlInputSpec : args
+
+@enduml

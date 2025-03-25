@@ -15,6 +15,11 @@ input_sources: # InputFilenamesSpec
     cond2: 0.8 # ValueSpec
     drn_lines: examples/drn_lines.shp # FilenameSpec
 
+parameter_estimation_cache: ##all pest stuff
+    option_mm: etc
+    spatial_correlations:
+        $variagram_A: 
+
 input_cache: # SettingsSpec
     top: # InputSpec
         source: $:dem # attr: ExistingSpec
@@ -26,6 +31,16 @@ input_cache: # SettingsSpec
         fileread_kwargs: {resampling: min} # attr: ValueSpec
         transform: # TransformInput
             0: ($:dem - 30) # attr: TransfromSpec
+        parameterization:
+            ubound:
+            lbound:
+            variogram: 
+                model: spherical
+                range: 1000
+                sill: 1
+                nugget: 0.01
+            variance_multiplier: 1
+
     drn_bottom: # InputSpec
         transform: # attr
             0: $py:mymodule.mod1.findvalue($:dem,$:wels) # attr: TransfromSpec, example of using a custom function
@@ -43,13 +58,21 @@ spatial_discretization: # SpatialDiscretizationSpec
         botm: -100 # Parameter: ValueSpec
     domain: $:domain # attr: ExistingSpec (referencing 'domain' from input_filenames) ; can be a dict {0: domain1, 1: domain2} corresponding to layer number: domain
 
+obs:
+
+
 # stress packages
 model_packages: # PackagesSpec
-    drn_a: # ModelPackageSpec, name of package
+    $drn_a: # ModelPackageSpec, name of package
         package_type: drn # attr: ValueSpec
         parameters: # attr
             elevation: $:top_min # Parameter: ExistingSpec (referencing 'top_min' from input_specs)
             conductance: $:cond2 # Parameter: ExistingSpec (Note: 'cond2' is NOT defined, this will cause an error)
+        obs:
+            #specific to outputs
+            flux: # named modflow ouput:
+                loc1: $:file
+            head: filename
         spatial_domain:  # attr
             xyz_data: # attr
                 xy: $:drn_lines # attr: ExistingSpec (Note: 'drn_lines' is NOT defined, this will cause an error)

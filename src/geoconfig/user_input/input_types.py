@@ -8,9 +8,9 @@ from abc import ABC, abstractmethod
 # import FileTypeFactory
 from .filepath.filetype_factory import filetype_factory
 
-# --- YamlInputSpec Classes ---
+# --- InputValueSpec Classes ---
 @dataclass
-class YamlInputSpec(ABC):
+class InputValueSpec(ABC):
     """Base class for YAML input specifications."""
 
     type: str  # e.g., "value", "filepath", "existing", "transformation"
@@ -27,7 +27,7 @@ class YamlInputSpec(ABC):
         pass
 
 @dataclass
-class ValueInput(YamlInputSpec):
+class ValueInput(InputValueSpec):
     """Represents a simple value input (string, boolean, integer, float)."""
     type: str = "value"
 
@@ -41,7 +41,7 @@ class ValueInput(YamlInputSpec):
 
 
 @dataclass
-class FilepathInput(YamlInputSpec):
+class FilepathInput(InputValueSpec):
     """Represents a filepath input (raster, csv, shapefile)."""
 
     type: str = "filepath"
@@ -64,7 +64,7 @@ class FilepathInput(YamlInputSpec):
 
 
 @dataclass
-class CachedInput(YamlInputSpec):
+class CachedInput(InputValueSpec):
     """Represents a reference to an existing input defined elsewhere."""
 
     type: str = "cached"
@@ -89,18 +89,20 @@ class CachedInput(YamlInputSpec):
 
 # recursive classes ----------------------------------------
 @dataclass
-class RecursiveType(ABC):
+class RecursiveType(InputValueSpec):
     """Base class for recursive types."""
 
     arg_values: List[Any] = None
-    args: List[YamlInputSpec] = field(default_factory=list)
+    args: List[InputValueSpec] = field(default_factory=list)
 
-    def update_args(self, arg):
-        self.args.append(arg)
+    def __post_init__(self):
+        if self.arg_values is not None:
+            self.args = [self.create(arg) for arg in self.arg_values]
+
 
 
 @dataclass
-class PythonModuleInput(YamlInputSpec, RecursiveType):
+class PythonModuleInput(RecursiveType):
     """Represents a transformation to be applied."""
 
     type: str = "python_module"
@@ -120,7 +122,7 @@ class PythonModuleInput(YamlInputSpec, RecursiveType):
 
 
 @dataclass
-class MathInput(YamlInputSpec, RecursiveType):
+class MathInput(RecursiveType):
     """Represents a mathematical operation."""
 
     type: str = "math"
@@ -174,7 +176,7 @@ class MathInput(YamlInputSpec, RecursiveType):
 
 
 @dataclass
-class MultiInput(YamlInputSpec, RecursiveType):
+class MultiInput(RecursiveType):
     """Represents a list of inputs."""
 
     type: str = "multi"
